@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import os
+from config import *
 
 def get_files_info(working_directory, directory="."):
 
@@ -24,4 +25,29 @@ def get_files_info(working_directory, directory="."):
         return "\n".join(files_info)
     except Exception as e:
         return f"Error listing files: {e}"
+
+def get_file_content(working_directory, file_path):
+
+    abs_working_dir = os.path.abspath(working_directory) 
+    target_path = os.path.abspath(os.path.join(working_directory, file_path))
+
+    if not target_path.startswith(abs_working_dir):
+        return f'Error: Cannot read "{file_path}" as it is outide the permitted working directory.'
+    if not os.path.isfile(target_path):
+        return f'Error: File not found or is not a regular file: "{file_path}"'
+
+    try:   
+        if os.path.isfile(target_path):
+            with open(target_path, "r") as file:
+                content = file.read()
+                words = content.split()
+
+                if len(words) > 10000:
+                    truncate_text = " ".join(words[:TRUNCATE])
+                    return f"{truncate_text} File '{file_path}' truncated at 10000 characters"
+                else:
+                    truncate_text = content
+                    return f"{truncate_text}"
+    except Exception as e:
+        return f"Error listing files: {e}"  
 
