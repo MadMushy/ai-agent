@@ -49,5 +49,24 @@ def get_file_content(working_directory, file_path):
                     truncate_text = content
                     return f"{truncate_text}"
     except Exception as e:
-        return f"Error listing files: {e}"  
+        return f"Error listing files: {e}"
+
+def write_file(working_directory, file_path, content):
+
+    abs_working_dir = os.path.abspath(working_directory) 
+    target_path = os.path.abspath(os.path.join(working_directory, file_path))
+
+    if not target_path.startswith(abs_working_dir):
+        return f'Error: Cannot write to "{file_path}" as it is outide the permitted working directory.'
+    try:
+        if os.path.isfile(target_path):
+            with open(target_path, "w") as file:
+                file.write(content)
+        else:
+            os.makedirs(os.path.dirname(target_path), exist_ok = True)
+            with open(target_path, "w") as file:
+                file.write(content)
+        return f'Successfully wrote to "{file_path}" ({len(content)} characters written)'
+    except Exception as e:
+        return f'Error writing files: {e}'
 
