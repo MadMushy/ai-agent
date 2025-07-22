@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import os
+import subprocess
 from config import *
 
 def get_files_info(working_directory, directory="."):
@@ -70,3 +71,33 @@ def write_file(working_directory, file_path, content):
     except Exception as e:
         return f'Error writing files: {e}'
 
+def run_python_file(working_directory, file_path, args=[]):
+
+    abs_working_dir = os.path.abspath(working_directory) 
+    target_path = os.path.abspath(os.path.join(working_directory, file_path))
+
+    if not target_path.startswith(abs_working_dir):
+        return f'Error: Cannot execute "{file_path}" as it is outside the permitted working directory.'
+    if not os.path.isfile(target_path):
+        return f'Error: File "{file_path}" not found.'
+    if not target_path.endswith(".py"):
+        return f'Error: "{file_path}" is not a Python file.'
+    
+    try:
+        
+        result = subprocess.run(["python3", target_path] + args, cwd=working_directory, timeout=30, capture_output=True, text=True)
+
+        output = ""
+        if result.stdout:
+            output += f"STDOUT: {result.stdout}"
+        if result.stderr:
+            output += f"\nSTDERR: {result.stderr}"
+        if not output.strip():
+            return "No output produced."
+        if result.returncode != 0:
+            output += f"\nProcess exited with code {result.returncode}"
+        return output
+    except Exception as e:
+        return f"Error: executing Python file: {e}"
+
+        
