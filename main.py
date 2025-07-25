@@ -4,7 +4,7 @@ import types
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types
-from functions.get_files_info import schema_get_files_info, schema_get_file_content, schema_run_python_file, schema_write_file
+from functions.get_files_info import schema_get_files_info, schema_get_file_content, schema_run_python_file, schema_write_file, call_function
 
 load_dotenv()
 api_key = os.environ.get("GEMINI_API_KEY")
@@ -60,8 +60,23 @@ def main():
     if not response.function_calls:
         return response.text
 
+    function_responses = []
     for function_call_part in response.function_calls:
-        print(f"Calling function: {function_call_part.name}({function_call_part.args})")
+        function_call_result = call_function(function_call_part, verbose)
+        if (
+            not function_call_result.parts
+            or not function_call_result.parts[0].function_response
+        ):
+            raise Exception("empty function call result")
+        if verbose:
+            print(f"-> {function_call_result.parts[0].function_response.response}")
+        function_responses.append(function_call_result.parts[0])
+
+    if not function_responses:
+        raise Exception("no function responses generated, exiting.")
+        
+
+    
 
 if __name__ == "__main__":
     main()
